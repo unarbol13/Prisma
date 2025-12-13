@@ -1,15 +1,11 @@
 workflows:
-  ios-development:
+  ios-development-build:
     name: iOS Development Build
-    max_build_duration: 60
+    max_build_duration: 120
     instance_type: mac_mini_m2
     integrations:
-      app_store_connect: lacasaverdeac@gmail.com  # ← tu Apple ID (el que pagaste el Developer Program)
+      apple: Codemagic API Key  # ← EL NOMBRE EXACTO que te dio Codemagic para la integración Apple (ej: "lacasaverdeac@gmail.com - Developer Portal")
     environment:
-      vars:
-        XCODE_WORKSPACE: "prisma.xcworkspace"
-        XCODE_SCHEME: "prisma"
-        FLUTTER_VERSION: "3.24.3"  # o la que tengas, pero actualizada
       flutter: stable
       xcode: latest
       cocoapods: default
@@ -22,18 +18,19 @@ workflows:
       - name: Install Flutter dependencies
         script: |
           flutter packages pub get
+      - name: Install pods
+        script: |
+          cd ios && pod install && cd ..
       - name: Set up signing
         script: |
-          app-store-connect fetch-signing-files "com.unarbol13.prisma" --type IOS_APP_DEVELOPMENT
-          app-store-connect use-signing-files
-      - name: Build iOS development
+          xcode-project use-profiles
+      - name: Build iOS
         script: |
           flutter build ios --debug --no-codesign
     artifacts:
       - build/ios/ipa/*.ipa
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
     publishing:
       email:
         recipients:
-          - lacasaverdeac@gmail.com  # ← tu email para recibir el .ipa
+          - lacasaverdeac@gmail.com  # ← tu email real
