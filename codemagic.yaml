@@ -1,0 +1,39 @@
+workflows:
+  ios-development:
+    name: iOS Development Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: lacasaverdeac@gmail.com  # ← tu Apple ID (el que pagaste el Developer Program)
+    environment:
+      vars:
+        XCODE_WORKSPACE: "prisma.xcworkspace"
+        XCODE_SCHEME: "prisma"
+        FLUTTER_VERSION: "3.24.3"  # o la que tengas, pero actualizada
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+    scripts:
+      - name: Install Flutter dependencies
+        script: |
+          flutter packages pub get
+      - name: Set up signing
+        script: |
+          app-store-connect fetch-signing-files "com.unarbol13.prisma" --type IOS_APP_DEVELOPMENT
+          app-store-connect use-signing-files
+      - name: Build iOS development
+        script: |
+          flutter build ios --debug --no-codesign
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      email:
+        recipients:
+          - lacasaverdeac@gmail.com  # ← tu email para recibir el .ipa
