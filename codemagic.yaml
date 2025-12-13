@@ -1,32 +1,24 @@
 workflows:
-  ios-development:
+  ios-development-build:
     name: iOS Development Build
-    max_build_duration: 60
+    max_build_duration: 120
     instance_type: mac_mini_m2
-    integrations:
-      apple: Codemagic API Key  # ← NOMBRE EXACTO que ves en Integrations (en tu foto es "Codemagic API Key")
     environment:
       flutter: stable
       xcode: latest
       cocoapods: default
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: main
     scripts:
       - name: Install Flutter dependencies
         script: |
-          flutter packages pub get
-      - name: Set up signing
+          flutter pub get
+      - name: Install CocoaPods
         script: |
-          xcode-project use-profiles
-      - name: Build iOS development
+          cd ios && pod install && cd ..
+      - name: Build iOS
         script: |
           flutter build ios --debug --no-codesign
     artifacts:
       - build/ios/ipa/*.ipa
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
     publishing:
       email:
